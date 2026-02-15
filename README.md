@@ -165,7 +165,24 @@ npx changeset
 ```
 
 See [`AGENTS.md`](AGENTS.md) for deeper contributor guidance.
+Mohd Helmie Bin Derahman  
+a.k.a. CyberZoner  
 
+"Listening With The Eyes ❤️" – Melihat dunia dengan hati, mendengar cerita tanpa kata.  
+Positive Mental ATTITUDE adalah kunci hidupku. Saya percaya setiap cabaran membawa peluang untuk tumbuh lebih kuat.
+
+#CyberZoner – Komuniti positif, kreativiti, dan perkongsian ilmu (web dev, motivasi, tech, dan lebih).  
+Aktif di:  
+• Facebook: https://www.facebook.com/mohdhelmie23  
+• Google Developer: https://g.dev/cyberzoner  
+• CodePen: https://codepen.io/Mohd-Helmie-Bin-Derahman-CyberZoner (cipta animasi & design kreatif)  
+• TikTok / Instagram: @mohdhelmie23  
+
+Copyright (c) 2025 by Mohd Helmie Bin Derahman (CyberZoner).  
+Semua karya dibawah MIT License – bebas guna, ubah suai, dan kongsikan dengan kredit.
+
+Mari bina mindset positif bersama! 🚀✨
 ## License
 
 [MIT](LICENSE)
+https://my.play/CyberZoner23
