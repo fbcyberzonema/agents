@@ -174,3 +174,47 @@ CI runs on every PR (`npm ci && npm run build && npm run check && npm run test`)
 - Use CommonJS or Service Worker format — ES modules only
 - Modify `node_modules/` or `dist/` directories
 - Force push to main
+name: Deploy CyberZoner Edge
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Cache TinyGo
+        id: cache-tinygo
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/tinygo
+          key: ${{ runner.os }}-tinygo-0.35.0
+
+      - name: Install TinyGo
+        if: steps.cache-tinygo.outputs.cache-hit != 'true'
+        run: |
+          wget [https://github.com/tinygo-org/tinygo/releases/download/v0.35.0/tinygo_0.35.0_amd64.deb](https://github.com/tinygo-org/tinygo/releases/download/v0.35.0/tinygo_0.35.0_amd64.deb)
+          sudo dpkg -i tinygo_0.35.0_amd64.deb
+
+      - name: Build WASM
+        run: |
+          # Ensure target directory exists
+          mkdir -p src
+          
+          # Get the correct wasm_exec.js for this TinyGo version
+          TINYGOROOT=$(tinygo env TINYGOROOT)
+          cp "$TINYGOROOT/targets/wasm_exec.js" ./src/
+          
+          # Build the binary
+          tinygo build -o src/main.wasm -target wasm ./main.go
+
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # command: pages deploy src --project-name=cyberzoner-edge
