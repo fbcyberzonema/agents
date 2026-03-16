@@ -1,1 +1,155 @@
-https://gh.io/copilot-installDeployment Link" (simulasi) dan arahan terakhir untuk anda 'push' kod ini ke GitHub
+https://cyberzoner-edge.pages.devmenambah logik "Data Encryption" dalam kod Go (WASM) supaya mesej dalam ChatInterface anda diproses dengan enkripsi gred tentera (AES/RSA) sebelum dipaparkan?import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.content
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+/**
+ * Data class untuk mewakili mesej dalam chat.
+ */
+data class ChatMessage(
+    val text: String,
+    val isUser: Boolean,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+/**
+ * ChatViewModel - Mengendalikan logik perniagaan untuk AI 'CyberZoner'.
+ * Menggunakan Gemini 1.5 Flash untuk analisis multimodal (teks & imej).
+ */
+class ChatViewModel : ViewModel() {
+
+    private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
+    val messages = _messages.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
+    // 1. KONFIGURASI MODEL & SISTEM INSTRUKSI
+    // Menggunakan 'systemInstruction' untuk menetapkan persona CyberZoner secara kekal.
+    private val model = Firebase.ai.generativeModel(
+        modelName = "gemini-1.5-flash",
+        systemInstruction = content { 
+            text(
+                "Kau adalah 'CyberZoner', sebuah AI pembantu pakar keselamatan siber dan penggodam beretika. " +
+                "Gaya bahasa kau adalah teknikal, ringkas, dan menggunakan terminologi terminal. " +
+                "Jika user menghantar imej kod atau log sistem, kau mesti menganalisis kelemahan (vulnerabilities). " +
+                "Jangan menjawab soalan yang tidak berkaitan dengan teknologi, kod, atau sekuriti."
+            )
+        }
+    )
+
+    /**
+     * Menukar Uri kepada Bitmap dengan pengendalian memori yang efisien.
+     * Dijalankan dalam Dispatchers.IO untuk mengelakkan UI jank.
+     */
+    suspend fun uriToBitmap(context: Context, uri: Uri): Bitmap? = withContext(Dispatchers.IO) {
+        return@withContext try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val source = ImageDecoder.createSource(context.contentResolver, uri)
+                ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                    decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                    decoder.isMutableRequired = true
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Menghantar input pengguna ke API Gemini.
+     * @param prompt Teks dari input pengguna.
+     * @param image Bitmap pilihan jika pengguna melampirkan imej.
+     */
+    fun sendCyberPayload(prompt: String, image: Bitmap? = null) {
+        // Validasi input: Jangan hantar jika kedua-duanya kosong
+        if (prompt.isBlank() && image == null) return
+
+        val userDisplayText = if (prompt.isBlank() && image != null) {
+            "[System: Analisis Imej Dimulakan]"
+        } else {
+            prompt
+        }
+
+        // Tambah mesej pengguna ke dalam senarai secara atomik
+        _messages.update { it + ChatMessage(userDisplayText, true) }
+        _isLoading.value = true
+
+        viewModelScope.launch {
+            try {
+                // Sediakan content multimodal
+                val inputContent = content {
+                    image?.let { image(it) }
+                    text(prompt)
+                }
+
+                // Pelaksanaan API Call
+                val response = model.generateContent(inputContent)
+                
+                val responseText = response.text ?: "ERR: Kegagalan dekripsi respon dari server."
+                
+                _messages.update { it + ChatMessage(responseText, false) }
+
+            } catch (e: Exception) {
+                // Log ralat teknikal dalam gaya terminal CyberZoner
+                val errorMsg = "FATAL ERROR: ${e.localizedMessage ?: "Connection Timeout"}. Sila semak sambungan rangkaian."
+                _messages.update { it + ChatMessage(errorMsg, false) }
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
+    /**
+     * Membersihkan sejarah chat jika perlu.
+     */
+    fun clearTerminal() {
+        _messages.value = emptyList()
+    }
+}GitHub.com/cyberzoner  - name: Cache TinyGo
+    id: cache-tinygo
+    uses: actions/cache@v4
+    with:
+      path: /usr/local/bin/tinygo
+      key: ${{ runner.os }}-tinygo-0.35.0
+
+  - name: Install TinyGo
+    if: steps.cache-tinygo.outputs.cache-hit != 'true'
+    run: |
+      wget https://github.com/tinygo-org/tinygo/releases/download/v0.35.0/tinygo_0.35.0_amd64.deb
+      sudo dpkg -i tinygo_0.35.0_amd64.deb
+
+  - name: Build WASM
+    run: |
+      # Ensure target directory exists
+      mkdir -p src
+      
+      # Get the correct wasm_exec.js for this TinyGo version
+      TINYGOROOT=$(tinygo env TINYGOROOT)
+      cp "$TINYGOROOT/targets/wasm_exec.js" ./src/
+      
+      # Build the binary
+      tinygo build -o src/main.wasm -target wasm ./main.go
+
+  - name: Deploy to Cloudflare
+    uses: cloudflare/wrangler-action@v3
+    with:
+      apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      command: pages deploy src --project-name=cyberzoner-edgecreate a SKILL.md with instructions for the agent on how to search, analyze, and synthesize information for high-value applications.https://gh.io/copilot-installDeployment Link" (simulasi) dan arahan terakhir untuk anda 'push' kod ini ke GitHub
